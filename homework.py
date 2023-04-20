@@ -7,7 +7,7 @@ import sys
 
 from http import HTTPStatus
 from dotenv import load_dotenv
-from exceptions import DoNotSend, IncorrectAPIResponse
+from exceptions import IncorrectAPIResponse
 from telegram.error import TelegramError
 
 load_dotenv()
