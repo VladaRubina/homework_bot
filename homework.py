@@ -102,10 +102,10 @@ def check_response(response):
     """
     if 'homeworks' not in response:
         raise TypeError('Response does not contain "homeworks" key')
-        
+
     if not isinstance(response, dict):
         raise TypeError('Response is not a dictionary')
-    
+
     if not isinstance(response['homeworks'], list):
         raise TypeError('\"homeworks\" value is not a list')
 
