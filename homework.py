@@ -7,7 +7,8 @@ import sys
 
 from http import HTTPStatus
 from dotenv import load_dotenv
-from exceptions import (DoNotSend, IncorrectAPIResponse)
+from exceptions import DoNotSend, IncorrectAPIResponse
+from telegram.error import TelegramError
 
 load_dotenv()
 
@@ -43,7 +44,6 @@ def check_tokens():
 def send_message(bot, message):
     """
     Send message to Telegram chat.
-
     Use a bot instance and a text message string.
     The chat ID is obtained from the venv variable TELEGRAM_CHAT_ID.
     """
@@ -51,9 +51,8 @@ def send_message(bot, message):
         logging.debug('Send of status into telegram')
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logging.info(message)
-
-    except Exception:
-        logging.error('something wrong with message sending to telegram')
+    except TelegramError as e:
+        logging.error(f'something wrong with message sending to telegram: {e}')
 
 
 def get_api_answer(load):
@@ -96,40 +95,42 @@ def get_api_answer(load):
 def check_response(response):
     """
     Check API response for compliance with documentation.
-
     Accepts API response as an argument, which is expected to be in JSON format
     and converted to a Python data type.
     The function checks if the response complies with the API documentation and
     returns True if it does, False otherwise.
     """
-    logging.info('API response check for propriety')
+    if 'homeworks' not in response:
+        raise TypeError('Response does not contain "homeworks" key')
+        
     if not isinstance(response, dict):
-        raise TypeError('API response is not dict')
+        raise TypeError('Response is not a dictionary')
+    
+    if not isinstance(response['homeworks'], list):
+        raise TypeError('\"homeworks\" value is not a list')
 
-    homeworks = response.get('homeworks')
-    if not isinstance(homeworks, list):
-        raise TypeError('homeworks is not a list')
+    if 'current_date' not in response:
+        raise TypeError('Response does not contain "current_date" key')
 
-    return homeworks
+    return response['homeworks']
 
 
 def parse_status(homework):
     """
     Extracts the status of a specific homework.
-
     Takes a homework object as an argument and extracts its status.
     If successful, the function will return a string formatted for Telegram,
     containing the appropriate verdict from the dictionary HOMEWORK_VERDICTS.
     """
-    logging.info('Lead checks and workstatus')
     if 'homework_name' not in homework:
         raise KeyError('No key for homework_name in API response')
 
-    try:
-        verdict = HOMEWORK_VERDICTS[homework.get('status')]
-        homework_name = homework['homework_name']
-    except Exception as error:
-        logging.error(f'Mistake at request - {error}')
+    verdict = HOMEWORK_VERDICTS.get(homework.get('status'))
+    if verdict is None:
+        raise ValueError('Invalid status value in API response')
+
+    homework_name = homework['homework_name']
+
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
