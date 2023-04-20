@@ -84,7 +84,6 @@ def get_api_answer(load):
         return response.json()
 
     except Exception as error:
-        message = 'API not returns 200. Request: {url}, {headers}, {params}'
         raise IncorrectAPIResponse(message, error)
 
     finally:
@@ -107,7 +106,7 @@ def check_response(response):
         raise TypeError('Response is not a dictionary')
 
     if not isinstance(response['homeworks'], list):
-        raise TypeError('\"homeworks\" value is not a list')
+        raise TypeError('"homeworks" value is not a list')
 
     if 'current_date' not in response:
         raise TypeError('Response does not contain "current_date" key')
@@ -164,10 +163,6 @@ def main():
                 prev_msg = message
             else:
                 logging.info(message)
-
-        except DoNotSend as error:
-            message = f'Program operation fault: {error}'
-            logging.error(message, exc_info=True)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
