@@ -84,7 +84,7 @@ def get_api_answer(load):
         return response.json()
 
     except Exception as error:
-        raise IncorrectAPIResponse(message, error)
+        raise IncorrectAPIResponse(error)
 
     finally:
         message = 'got API response. Request: {url}, {headers}, {params}'
